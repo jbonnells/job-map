@@ -135,9 +135,9 @@ def run(df, map_filename='map.html'):
     print(f"Map saved as {map_filename}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Generate a map from an Excel file of locations.')
-    parser.add_argument('file_path', type=str, nargs='?', help='Path to the Excel file containing locations', default="./jobs.xlsx")
+    parser = argparse.ArgumentParser(description='Generate a map from an CSV file of job postings and locations.')
+    parser.add_argument('file_path', type=str, nargs='?', help='Path to the CSV file', default="./jobs.csv")
     args = parser.parse_args()
 
-    df = pd.read_excel(args.file_path)
+    df = pd.read_csv(args.file_path)
     run(df)
