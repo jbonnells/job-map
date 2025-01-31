@@ -6,22 +6,14 @@ from dotenv import load_dotenv
 load_dotenv()
 ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
 
-def get_coordinates(city=None, state=None, name=None):
+def get_coordinates(address):
     url = f"https://nominatim.openstreetmap.org/search"
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0'}
     
-    if name is not None:
-        params = {
-            'q': f'{name},{city},{state}',
-            'format': 'json'
-        }
-    else:
-        params = {
-            "city": city,
-            "state": state,
-            "country": "USA",
-            "format": "json"
-        }
+    params = {
+        'q': address,
+        'format': 'json'
+    }
     
     response = requests.get(url, params=params, headers=headers)
     
@@ -42,8 +34,6 @@ def get_coordinates(city=None, state=None, name=None):
         data = response.json()
         if data:
             return float(data[0]["lat"]), float(data[0]["lon"])
-        else:
-            return get_coordinates(city, state)
     
     except Exception as ex:
         print(ex)
@@ -63,31 +53,30 @@ def run(df, map_filename='map.html'):
     dates_applied = df['Date Applied'].tolist()
     company_names = df['Company Name'].tolist()
     job_titles = df['Job Title'].tolist()
-    locations = df['Location'].tolist()
+    addresses = df['Location'].tolist()
     job_status = df['Status'].tolist()
     job_postings = df['Job Posting'].tolist()
-    zipped = zip(dates_applied,company_names,job_titles,locations,job_postings,job_status)
+    zipped = zip(dates_applied,company_names,job_titles,addresses,job_postings,job_status)
     iter_count = 1
 
-    for date,name,title,location,link,status in zipped:
-        print(f'Processing ({iter_count}/{df.shape[0]}): {title}, {name}, {location}')
+    for date,name,title,address,link,status in zipped:
+        print(f'Processing ({iter_count}/{df.shape[0]}): {title}, {name}, {address}')
         try:
             date = str(date).split(' ')[0] # remove time
-            city = location.split(',')[0].strip()
-            state = location.split(',')[1].strip()
-            coords = get_coordinates(city, state, name)
-            size = locations.count(location) + 1
             text = f'{name} - {title} - {status} - {date}'
-            color = 'blue' if status == 'Applied' else 'green' if status == 'Interview' else 'red' if status == 'Rejected' else 'lightgray'
+            color = 'blue' if 'Applied' in status else 'green' if 'Interview' in status else 'red' if 'Rejected' in status else 'lightgray'
+            coords = get_coordinates(address)
+
+            if coords is None:
+                print(f"Error: Unable to get coordinates for {address}")
+                continue
 
             if coords not in map_data.keys():
                 map_data[coords] = []
 
             map_data[coords].append({
                 'date': date,
-                'city': city,
-                'state': state,
-                'size': size,
+                'address': address,
                 'text': text,
                 'color': color,
                 'link': link
@@ -102,14 +91,13 @@ def run(df, map_filename='map.html'):
         text = ''
         for v in params:
             text += f"<a href=\"{v['link']}\" target=\"_blank\">{v['text']}</a><br>"
-            radius = v['size']
             color = v['color']
 
         folium.CircleMarker(
                 popup=Popup(text, max_width=500),
                 tooltip=text,
                 location=coords,
-                radius=radius,
+                radius=5,
                 color=color,
                 fill=True,
                 fill_color=color,
@@ -124,7 +112,7 @@ def run(df, map_filename='map.html'):
         background-color:#2A2B2B; opacity: 0.8; color: white;">
         &nbsp; <b>Legend</b> <br>
         &nbsp; <i class="fa fa-circle" style="color:blue"></i>&nbsp; Applied <br>
-        &nbsp; <i class="fa fa-circle" style="color:green"></i>&nbsp; Interview <br>
+        &nbsp; <i class="fa fa-circle" style="color:green"></i>&nbsp; Interview Pending <br>
         &nbsp; <i class="fa fa-circle" style="color:red"></i>&nbsp; Rejected <br>
         &nbsp; <i class="fa fa-circle" style="color:lightgray"></i>&nbsp; Withdrawn/Other <br>
         </div>
