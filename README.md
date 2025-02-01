@@ -56,3 +56,7 @@ The script generates an HTML file (`map.html`) with an interactive map. The map 
 To generate the map, run:  
 `python map.py`  
 This will process the `jobs.csv` file and create `map.html` in the same directory.
+
+## github-pages deployment
+
+[map.html](https://jbonnells.github.io/job-map/map.html)
