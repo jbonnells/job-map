@@ -40,7 +40,7 @@ def get_coordinates(address):
 
 def run(df, map_filename='map.html'):
     us_center = [39.8283, -115.5795]  # Center of the western half of the U.S.
-    my_map = folium.Map(location=us_center, zoom_start=5)
+    my_map = folium.Map(location=us_center, zoom_start=6)
     folium.TileLayer(
         tiles=f'https://tile.jawg.io/jawg-dark/{{z}}/{{x}}/{{y}}{{r}}.png?access-token={ACCESS_TOKEN}',  # URL template for the custom tiles
         attr='<a href="https://jawg.io" title="Tiles Courtesy of Jawg Maps" target="_blank">&copy; <b>Jawg</b>Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',  # Custom attribution
@@ -139,7 +139,7 @@ def run(df, map_filename='map.html'):
             '</div>'
         )
     list_html = f'''
-    <div style="position: fixed; top: 10px; right: 10px; width: 400px; border:2px solid grey; z-index:9999; font-size:14px;
+    <div style="position: fixed; top: 10px; right: 10px; width: 300px; border:2px solid grey; z-index:9999; font-size:14px;
         background-color:#2A2B2B; opacity: 0.8; color: white;">
         <div id="listHeader" style="padding: 10px; cursor: pointer;" onclick="toggleList()">Pending Jobs &#9654;</div>
         <div id="jobList" style="height:300px; overflow-y:auto; padding:10px; display:none;">
