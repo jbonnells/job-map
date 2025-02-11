@@ -58,6 +58,7 @@ def run(df, map_filename='map.html'):
     job_postings = df['Job Posting'].tolist()
     zipped = zip(dates_applied,company_names,job_titles,addresses,job_postings,job_status)
     iter_count = 1
+    pending_jobs = []
 
     for date,name,title,address,link,status in zipped:
         print(f'Processing ({iter_count}/{df.shape[0]}): {title}, {name}, {address}')
@@ -81,6 +82,16 @@ def run(df, map_filename='map.html'):
                 'color': color,
                 'link': link
             })
+
+            job_info = {
+                'date': str(date).split(' ')[0],
+                'text': f'{name} - {title}',
+                'color': color,
+                'link': link,
+                'coords': coords
+            }
+            if color in ['blue', 'green']:
+                pending_jobs.append(job_info)
             
         except Exception as ex:
             print(ex)
@@ -107,7 +118,7 @@ def run(df, map_filename='map.html'):
     # Add a legend to the map
     legend_html = '''
         <div style="position: fixed; 
-        bottom: 50px; left: 50px; width: 150px; height: 150px; 
+        bottom: 50px; right: 10px; width: 150px; height: 150px; 
         border:2px solid grey; z-index:9999; font-size:14px;
         background-color:#2A2B2B; opacity: 0.8; color: white;">
         &nbsp; <b>Legend</b> <br>
@@ -118,6 +129,45 @@ def run(df, map_filename='map.html'):
         </div>
         '''
     my_map.get_root().html.add_child(folium.Element(legend_html))
+
+    list_items_html = ""
+    for job in pending_jobs:
+        lat, lng = job['coords']
+        list_items_html += (
+            f'<div onclick="centerMap({lat}, {lng})" style="cursor:pointer; margin-bottom:5px;">'
+            f'<i class="fa fa-circle" style="color:{job["color"]}"></i> {job["text"]}'
+            '</div>'
+        )
+    list_html = f'''
+    <div style="position: fixed; top: 10px; right: 10px; width: 400px; border:2px solid grey; z-index:9999; font-size:14px;
+        background-color:#2A2B2B; opacity: 0.8; color: white;">
+        <div id="listHeader" style="padding: 10px; cursor: pointer;" onclick="toggleList()">Pending Jobs &#9654;</div>
+        <div id="jobList" style="height:300px; overflow-y:auto; padding:10px; display:none;">
+            {list_items_html}
+        </div>
+    </div>
+    '''
+    my_map.get_root().html.add_child(folium.Element(list_html))
+
+    center_script = f"""
+    <script>
+    function toggleList() {{
+        var list = document.getElementById('jobList');
+        var header = document.getElementById('listHeader');
+        if(list.style.display === 'none') {{
+            list.style.display = 'block';
+            header.innerHTML = 'Pending Jobs &#9660;';
+        }} else {{
+            list.style.display = 'none';
+            header.innerHTML = 'Pending Jobs &#9654;';
+        }}
+    }}
+    function centerMap(lat, lng) {{
+        {my_map.get_name()}.setView([lat, lng], 12);
+    }}
+    </script>
+    """
+    my_map.get_root().html.add_child(folium.Element(center_script))
 
     my_map.save(map_filename)
     print(f"Map saved as {map_filename}")
