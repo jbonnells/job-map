@@ -39,8 +39,8 @@ def get_coordinates(address):
         print(ex)
 
 def run(df, map_filename='map.html'):
-    us_center = [39.8283, -115.5795]  # Center of the western half of the U.S.
-    my_map = folium.Map(location=us_center, zoom_start=6)
+    map_center = [39.7392, -104.9903]  # Denver, CO
+    my_map = folium.Map(location=map_center, zoom_start=10)
     folium.TileLayer(
         tiles=f'https://tile.jawg.io/jawg-dark/{{z}}/{{x}}/{{y}}{{r}}.png?access-token={ACCESS_TOKEN}',  # URL template for the custom tiles
         attr='<a href="https://jawg.io" title="Tiles Courtesy of Jawg Maps" target="_blank">&copy; <b>Jawg</b>Maps</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',  # Custom attribution
@@ -163,7 +163,7 @@ def run(df, map_filename='map.html'):
         }}
     }}
     function centerMap(lat, lng) {{
-        {my_map.get_name()}.setView([lat, lng], 12);
+        {my_map.get_name()}.setView([lat, lng], 14);
     }}
     </script>
     """
